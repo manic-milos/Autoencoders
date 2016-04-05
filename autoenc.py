@@ -8,6 +8,7 @@ import numpy as np
 import math
 from datetime import date
 import visualization
+import copy
 
 from os import listdir
 from os.path import isfile, join
@@ -60,7 +61,15 @@ for filename in onlyfiles:
 
 instance_min=min(min(instances[:]));
 instance_max=max(max(instances[:]));
+print("max:",instance_max)
+print("min",instance_min)
 instance_max-=instance_min;
+original_instances=instances;
+instances=(np.array(instances)-instance_min)/instance_max;
+#for instance in range(len(instances)):
+	#for entry in range(len(instances[instance])):
+		#instances[instance][entry]-=instance_min;
+		#instances[instance][entry]/=instance_max;
 
 def cosine_sim(a,b):
 	sim=0;
@@ -93,12 +102,6 @@ def dayspan(a,b):
 	date12=date(1989,int(month1),int(day1))
 	return min(abs((date1-date2).days),(date11-date2).days,(date2-date12).days)
 
-for instance in range(len(instances)):
-	for entry in range(len(instances[instance])):
-		instances[instance][entry]-=instance_min;
-		instances[instance][entry]/=instance_max;
-print(min(min(instances[:])))
-print(max(max(instances[:])))
 
 # %% Autoencoder definition
 def autoencoder(dimensions=[784, 512, 256, 64]):
@@ -192,10 +195,10 @@ def test_mnist():
 	# %%
 	# Fit all training data
 	
-	batch_size = 20
-	n_epochs = 500
+	batch_size = 25
+	n_epochs = 1000
 	trainingNow=True;
-	filename='/home/master/modeli/';
+	filename='./models/';
 	filename+=str(hidden_node_number)+'n'+str(batch_size)+'b'+str(n_epochs)+'e';
 	filenamenoExtension=filename;
 	filename+='.ckpnt';
@@ -214,7 +217,7 @@ def test_mnist():
 			i_batch=0;
 			c=0;
 			for batch_i in range(len(trainingset) // batch_size):
-				batch_xs= instances[i_batch:i_batch+batch_size]
+				batch_xs= trainingset[i_batch:i_batch+batch_size]
 				i_batch=i_batch+batch_size
 				train = np.array(batch_xs)
 				sess.run(optimizer, feed_dict={ae['x']: train})
@@ -249,7 +252,7 @@ def test_mnist():
 	recon = sess.run(ae['y'], feed_dict={ae['x']: test_xs_norm})
 	fig, axs = plt.subplots(2, n_examples, figsize=(10, 2))
 	for example_i in range(n_examples):
-		print(math.sqrt(sum((np.array(test_xs[example_i])-np.array(recon[example_i]))**2)/len(instances[example_i])))
+		print(math.sqrt(sum((np.array(test_xs[example_i])-np.array(recon[example_i]))**2)/len(test_xs[example_i])))
 		axs[0][example_i].imshow(visualization.mapnodestoimg(
 			test_xs[example_i],
 			img_dims['x'],img_dims['y'],
@@ -292,22 +295,36 @@ def test_mnist():
 				if(distance<closestDistance):
 					closestI=j;
 					closestDistance=distance;
-		closest.append((onlyfiles[i],onlyfiles[closestI],closestDistance))
-		day_span=dayspan(onlyfiles[i],onlyfiles[closestI])
+		closest.append((onlyfiles[int(0.9*len(original_instances))+i],
+				  onlyfiles[int(0.9*len(original_instances))+closestI],closestDistance))
+		day_span=dayspan(onlyfiles[int(0.9*len(original_instances))+i],
+				   onlyfiles[int(0.9*len(original_instances))+closestI])
 		if(min_span>day_span):
 			min_span=day_span;
 			if(day_span==1):
-				print("najblizi:",onlyfiles[i],onlyfiles[closestI],closestDistance)
-		datedistavg+=dayspan(onlyfiles[i],onlyfiles[closestI])
+				print("najblizi:",
+		  onlyfiles[int(0.9*len(original_instances))+i],
+		  onlyfiles[int(0.9*len(original_instances))+closestI],closestDistance)
+		datedistavg+=dayspan(onlyfiles[int(0.9*len(original_instances))+i],
+					   onlyfiles[int(0.9*len(original_instances))+closestI])
 		datedistn+=1;
 	most_apart=0;
-	for c in sorted(closest, key=lambda x: dayspan(x[0],x[1]), reverse=False):
+	for c in sorted(closest, key=lambda x: x[2], reverse=True):
 		print c;
 		most_apart=c;
 	datedistavg/=datedistn;
 	print("date distance average:",datedistavg)
 	print("min dayspan for min distance:",min_span)
-	print(onlyfiles[ijmindist[0]],onlyfiles[ijmindist[1]],min_dist)
+	print(onlyfiles[int(0.9*len(original_instances))+ijmindist[0]],
+		onlyfiles[int(0.9*len(original_instances))+ijmindist[1]],min_dist)
+	print("minimax1:",min(testset[ijmindist[0]]),max(testset[ijmindist[0]]))
+	print("minimax1original:",
+	   min(original_instances[int(0.9*len(original_instances))+ijmindist[0]]),
+	   max(original_instances[int(0.9*len(original_instances))+ijmindist[0]]))
+	print("minimax2:",min(testset[ijmindist[1]]),max(testset[ijmindist[1]]))
+	print("minimax2original:",
+	   min(original_instances[int(0.9*len(original_instances))+ijmindist[1]]),
+	   max(original_instances[int(0.9*len(original_instances))+ijmindist[1]]))
 	print(representations[ijmindist[0]],representations[ijmindist[1]])
 	fig, axs = plt.subplots(1, 2)
 	ax1=axs[0].imshow(visualization.mapnodestoimg(
