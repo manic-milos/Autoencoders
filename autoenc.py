@@ -15,7 +15,7 @@ from os import listdir
 from os.path import isfile, join
 mypath="termalmaps"
 onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f))]
-
+onlyfiles.sort()
 instances=[]
 borders=[]
 img_dims={'x':0,'y':0};
@@ -179,6 +179,8 @@ def test_mnist():
 	#mean_img = np.mean(instances, axis=0)
 	
 	trainingset=instances[1:int(0.8*len(instances))];
+	np.random.seed(1)
+	trainingset=np.random.permutation(np.array(trainingset));
 	validationset=instances[int(0.8*len(instances)):int(0.9*len(instances))];
 	testset=instances[int(0.9*len(instances)):];
 	testset_beggining=int(0.9*len(instances))
@@ -197,13 +199,14 @@ def test_mnist():
 	# %%
 	# Fit all training data
 	
-	batch_size = 25
+	batch_size = 20
 	n_epochs = 1000
 	trainingNow=True;
 	filename='./models/';
 	filename+=str(hidden_node_number)+'n'+str(batch_size)+'b'+str(n_epochs)+'e';
 	filenamenoExtension=filename;
 	filename+='.ckpnt';
+	continuedTraining=False
 	if(isfile(filename)):
 		decision=input(
 			"File already exists,choose:\n0 to read,\n1 to add a v to the name\n2 to overwrite\n")
@@ -217,15 +220,19 @@ def test_mnist():
 		elif(decision!=2):
 			print("not an allowed choice...")
 			quit()
+		continuedTraining=True
 	if(trainingNow==True):
 		from_epoch=1000;
-		if(from_epoch>0):
-			partialmodelfile='./models/'+str(
-				hidden_node_number)+'n'+str(
-					batch_size)+'b'+str(
-						from_epoch)+'e'+'.ckpnt';
-			saver.restore(sess, partialmodelfile)
-			print("Partial model restored.")
+		if(continuedTraining):
+			if(from_epoch>0):
+				partialmodelfile='./models/'+str(
+					hidden_node_number)+'n'+str(
+						batch_size)+'b'+str(
+							from_epoch)+'e'+'.ckpnt';
+				saver.restore(sess, partialmodelfile)
+				print("Partial model restored.")
+		else:
+			from_epoch=0
 		for epoch_i in range(from_epoch,n_epochs):
 			i_batch=0;
 			c=0;
@@ -253,7 +260,7 @@ def test_mnist():
 		fig.colorbar(axs[node_counter].imshow(visualization.mapnodestoimg(
 			node,
 			img_dims['x'],img_dims['y'],
-			coords)),ax=axs[node_counter],shrink=0.2)
+			coords)),ax=axs[node_counter])
 		node_counter+=1;
 	fig.canvas.set_window_title('Skriveni neuroni')
 	fig.show()
@@ -268,34 +275,34 @@ def test_mnist():
 	fig, axs = plt.subplots(2, n_examples, figsize=(10, 2))
 	for example_i in range(n_examples):
 		print(math.sqrt(sum((np.array(test_xs[example_i])-np.array(recon[example_i]))**2)/len(test_xs[example_i])))
-		axs[0][example_i].imshow(visualization.mapnodestoimg(
+		fig.colorbar(axs[0][example_i].imshow(visualization.mapnodestoimg(
 			test_xs[example_i],
 			img_dims['x'],img_dims['y'],
-			coords))
-		axs[1][example_i].imshow(visualization.mapnodestoimg(
+			coords)),ax=axs[0][example_i])
+		fig.colorbar(axs[1][example_i].imshow(visualization.mapnodestoimg(
 			recon[example_i],
 			img_dims['x'],img_dims['y'],
-			coords))
+			coords)),ax=axs[1][example_i])
 	fig.canvas.set_window_title('Rekonstrukcija')
 	fig.show()
 	plt.draw()
-	#compression loss
-	#print("compression loss:",me.compression_loss(testset,recon))
+	##compression loss
+	print("compression loss:",me.compression_loss(testset,recon))
 	#end
 	#statistics
-	#print("correlation calculating...")
-	#print("correlation="+str(me.correlation(testset,representations)))
-	#print("index test calculation...")
-	#print("indextest="+str(me.indexTest(testset,representations)))
+	print("correlation calculating...")
+	print("correlation="+str(me.correlation(testset,representations)))
+	print("index test calculation...")
+	print("indextest="+str(me.indexTest(testset,representations)))
 	#end
 	#closest representations list
 	closestRepresentations=me.closestRepresentationList(testset,representations)
-	#for c in closestRepresentations:
-		#print (onlyfiles[testset_beggining+c[0]],
-				#onlyfiles[testset_beggining+c[1]],
-				#c[2])
+	for c in closestRepresentations:
+		print (onlyfiles[testset_beggining+c[0]],
+				onlyfiles[testset_beggining+c[1]],
+				c[2])
 	#end
-	c=closestRepresentations[-1]
+	c=closestRepresentations[0]
 	#minimal representation distance
 	print("minimal distance dates:")
 	print(onlyfiles[testset_beggining+c[0]],
@@ -332,7 +339,7 @@ def test_mnist():
 		coords))
 	fig.canvas.set_window_title('Najblizi datumi')
 	fig.colorbar(mappable=ax1,ax=axs[0][0])
-	fig.colorbar(mappable=ax1,ax=axs[0][1])
+	fig.colorbar(mappable=ax2,ax=axs[0][1])
 	fig.colorbar(mappable=ax3,ax=axs[1][0])
 	fig.colorbar(mappable=ax4,ax=axs[1][1])
 	fig.show()
