@@ -66,6 +66,10 @@ print("min",instance_min)
 instance_max-=instance_min;
 original_instances=instances;
 instances=(np.array(instances)-instance_min)/instance_max;
+for i in range(len(instances)):
+	if((original_instances[i]-(instances[i]*instance_max+instance_min)).any()>1):
+		print(i);
+quit()
 #for instance in range(len(instances)):
 	#for entry in range(len(instances[instance])):
 		#instances[instance][entry]-=instance_min;
@@ -180,7 +184,7 @@ def test_mnist():
 	trainingset=instances[1:int(0.8*len(instances))];
 	validationset=instances[int(0.8*len(instances)):int(0.9*len(instances))];
 	testset=instances[int(0.9*len(instances)):];
-	hidden_node_number=5
+	hidden_node_number=3
 	ae = autoencoder(dimensions=[len(trainingset[0]), hidden_node_number])
 
 	# %%
@@ -195,8 +199,8 @@ def test_mnist():
 	# %%
 	# Fit all training data
 	
-	batch_size = 25
-	n_epochs = 1000
+	batch_size = 20
+	n_epochs = 3000
 	trainingNow=True;
 	filename='./models/';
 	filename+=str(hidden_node_number)+'n'+str(batch_size)+'b'+str(n_epochs)+'e';
@@ -213,7 +217,15 @@ def test_mnist():
 				filenamenoExtension+='v'
 			filename=filenamenoExtension+'.ckpnt'
 	if(trainingNow==True):
-		for epoch_i in range(n_epochs):
+		from_epoch=2000;
+		if(from_epoch>0):
+			partialmodelfile='./models/'+str(
+				hidden_node_number)+'n'+str(
+					batch_size)+'b'+str(
+						from_epoch)+'e'+'.ckpnt';
+			saver.restore(sess, partialmodelfile)
+			print("Partial model restored.")
+		for epoch_i in range(from_epoch,n_epochs):
 			i_batch=0;
 			c=0;
 			for batch_i in range(len(trainingset) // batch_size):
