@@ -196,7 +196,7 @@ def test_mnist():
 	# Fit all training data
 	
 	batch_size = 20
-	n_epochs = 4000
+	n_epochs = 5000
 	trainingNow=True;
 	filename='./models/';
 	filename+=str(hidden_node_number)+'n'+str(batch_size)+'b'+str(n_epochs)+'e';
@@ -213,7 +213,7 @@ def test_mnist():
 				filenamenoExtension+='v'
 			filename=filenamenoExtension+'.ckpnt'
 	if(trainingNow==True):
-		from_epoch=3000;
+		from_epoch=4000;
 		if(from_epoch>0):
 			partialmodelfile='./models/'+str(
 				hidden_node_number)+'n'+str(
