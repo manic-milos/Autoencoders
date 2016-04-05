@@ -66,10 +66,6 @@ print("min",instance_min)
 instance_max-=instance_min;
 original_instances=instances;
 instances=(np.array(instances)-instance_min)/instance_max;
-#for i in range(len(instances)):
-	#if((original_instances[i]-(instances[i]*instance_max+instance_min)).any()>1):
-		#print(i);
-#quit()
 #for instance in range(len(instances)):
 	#for entry in range(len(instances[instance])):
 		#instances[instance][entry]-=instance_min;
@@ -200,7 +196,7 @@ def test_mnist():
 	# Fit all training data
 	
 	batch_size = 20
-	n_epochs = 3000
+	n_epochs = 4000
 	trainingNow=True;
 	filename='./models/';
 	filename+=str(hidden_node_number)+'n'+str(batch_size)+'b'+str(n_epochs)+'e';
@@ -217,7 +213,7 @@ def test_mnist():
 				filenamenoExtension+='v'
 			filename=filenamenoExtension+'.ckpnt'
 	if(trainingNow==True):
-		from_epoch=2000;
+		from_epoch=3000;
 		if(from_epoch>0):
 			partialmodelfile='./models/'+str(
 				hidden_node_number)+'n'+str(
@@ -297,21 +293,34 @@ def test_mnist():
 	min_span=1000000
 	original_distances=[]
 	representation_distances=[]
+	indexTestSum=0
 	for i in range(len(testset)):
 		closestI=-1;
 		closestDistance=1000000;
+		sortedRepresentationDist=[]
+		minOriginalDist=10000000;
+		minOriginalDisti=-1;
 		for j in range(len(testset)):
 			if(i!=j):
 				original_distances.append(euclid(testset[i],testset[j]))
 				representation_distances.append(
 					euclid(representations[i],representations[j]))
 				distance=euclid(representations[i],representations[j])
+				sortedRepresentationDist.append((j,distance));
+				original_dist=euclid(testset[i],testset[j])
+				if(original_dist<minOriginalDist):
+					minOriginalDist=original_dist;
+					minOriginalDisti=j;
 				if(distance<min_dist):
 					min_dist=distance;
 					ijmindist=(i,j)
 				if(distance<closestDistance):
 					closestI=j;
 					closestDistance=distance;
+		sortedRepresentationDist.sort(key=lambda x:x[1])
+		for si in range(len(sortedRepresentationDist)):
+			if(sortedRepresentationDist[si][0]==minOriginalDisti):
+				indexTestSum+=si+1;
 		closest.append((onlyfiles[int(0.9*len(original_instances))+i],
 				  onlyfiles[int(0.9*len(original_instances))+closestI],closestDistance))
 		day_span=dayspan(onlyfiles[int(0.9*len(original_instances))+i],
@@ -325,6 +334,7 @@ def test_mnist():
 		datedistavg+=dayspan(onlyfiles[int(0.9*len(original_instances))+i],
 					   onlyfiles[int(0.9*len(original_instances))+closestI])
 		datedistn+=1;
+	print("indextest:",indexTestSum/len(testset))
 	print("correlation:",np.corrcoef(
 		original_distances, representation_distances)[0, 1])
 	most_apart=0;
