@@ -196,7 +196,7 @@ def test_mnist():
 	# Fit all training data
 	
 	batch_size = 20
-	n_epochs = 5000
+	n_epochs = 7000
 	trainingNow=True;
 	filename='./models/';
 	filename+=str(hidden_node_number)+'n'+str(batch_size)+'b'+str(n_epochs)+'e';
@@ -213,7 +213,7 @@ def test_mnist():
 				filenamenoExtension+='v'
 			filename=filenamenoExtension+'.ckpnt'
 	if(trainingNow==True):
-		from_epoch=4000;
+		from_epoch=7000;
 		if(from_epoch>0):
 			partialmodelfile='./models/'+str(
 				hidden_node_number)+'n'+str(
@@ -355,13 +355,24 @@ def test_mnist():
 	   min(original_instances[int(0.9*len(original_instances))+ijmindist[1]]),
 	   max(original_instances[int(0.9*len(original_instances))+ijmindist[1]]))
 	print(representations[ijmindist[0]],representations[ijmindist[1]])
-	fig, axs = plt.subplots(1, 2)
-	ax1=axs[0].imshow(visualization.mapnodestoimg(
+	fig, axs = plt.subplots(2, 2)
+	recons=sess.run(ae['y'],feed_dict={
+		ae['x']:[testset[ijmindist[0]],
+		   testset[ijmindist[1]]]})
+	ax1=axs[0][0].imshow(visualization.mapnodestoimg(
 		testset[ijmindist[0]],
 		img_dims['x'],img_dims['y'],
 		coords));
-	ax2=axs[1].imshow(visualization.mapnodestoimg(
+	ax2=axs[0][1].imshow(visualization.mapnodestoimg(
 		testset[ijmindist[1]],
+		img_dims['x'],img_dims['y'],
+		coords))
+	axs[1][0].imshow(visualization.mapnodestoimg(
+		recons[0],
+		img_dims['x'],img_dims['y'],
+		coords));
+	axs[1][1].imshow(visualization.mapnodestoimg(
+		recons[1],
 		img_dims['x'],img_dims['y'],
 		coords))
 	fig.canvas.set_window_title('Najblizi datumi')
