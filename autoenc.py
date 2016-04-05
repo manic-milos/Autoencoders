@@ -8,6 +8,7 @@ import numpy as np
 import math
 from datetime import date
 import visualization
+import model_evaluation as me
 import copy
 
 from os import listdir
@@ -86,8 +87,8 @@ def cosine_sim(a,b):
 	sim/=a_norm*b_norm;
 	return sim;
 
-def euclid(a,b):
-	return math.sqrt(sum((np.array(a)-np.array(b))**2))
+#def euclid(a,b):
+	#return math.sqrt(sum((np.array(a)-np.array(b))**2))
 
 def dayspan(a,b):
 	date1=a.split('.')[0]
@@ -180,7 +181,8 @@ def test_mnist():
 	trainingset=instances[1:int(0.8*len(instances))];
 	validationset=instances[int(0.8*len(instances)):int(0.9*len(instances))];
 	testset=instances[int(0.9*len(instances)):];
-	hidden_node_number=3
+	testset_beggining=int(0.9*len(instances))
+	hidden_node_number=5
 	ae = autoencoder(dimensions=[len(trainingset[0]), hidden_node_number])
 
 	# %%
@@ -195,8 +197,8 @@ def test_mnist():
 	# %%
 	# Fit all training data
 	
-	batch_size = 20
-	n_epochs = 7000
+	batch_size = 25
+	n_epochs = 1000
 	trainingNow=True;
 	filename='./models/';
 	filename+=str(hidden_node_number)+'n'+str(batch_size)+'b'+str(n_epochs)+'e';
@@ -212,8 +214,11 @@ def test_mnist():
 			while(isfile(filenamenoExtension+'.ckpnt')):
 				filenamenoExtension+='v'
 			filename=filenamenoExtension+'.ckpnt'
+		elif(decision!=2):
+			print("not an allowed choice...")
+			quit()
 	if(trainingNow==True):
-		from_epoch=7000;
+		from_epoch=1000;
 		if(from_epoch>0):
 			partialmodelfile='./models/'+str(
 				hidden_node_number)+'n'+str(
@@ -254,10 +259,12 @@ def test_mnist():
 	fig.show()
 	plt.draw()
 	#end
+	#get testset results
+	recon,representations = sess.run([ae['y'],ae['represent']], 
+								  feed_dict={ae['x']: testset})
 	n_examples = 5
 	test_xs=testset[0:n_examples]
 	test_xs_norm = test_xs
-	recon = sess.run(ae['y'], feed_dict={ae['x']: test_xs_norm})
 	fig, axs = plt.subplots(2, n_examples, figsize=(10, 2))
 	for example_i in range(n_examples):
 		print(math.sqrt(sum((np.array(test_xs[example_i])-np.array(recon[example_i]))**2)/len(test_xs[example_i])))
@@ -272,19 +279,21 @@ def test_mnist():
 	fig.canvas.set_window_title('Rekonstrukcija')
 	fig.show()
 	plt.draw()
-	
-	recon = sess.run(ae['y'], feed_dict={ae['x']: testset})
-	compression_loss=0;
-	for i in range(len(testset)):
-		img_compression_loss=0;
-		for j in range(len(testset[i])):
-			img_compression_loss+=abs(testset[i][j]-recon[i][j])
-		img_compression_loss/=len(testset[i])
-		compression_loss+=img_compression_loss
-	compression_loss/=len(testset)
-	print('compression loss:',compression_loss)
-
-	representations=sess.run(ae['represent'],feed_dict={ae['x']:testset})
+	#compression loss
+	#print("compression loss:",me.compression_loss(testset,recon))
+	#end
+	#statistics
+	#print("correlation calculating...")
+	#print("correlation="+str(me.correlation(testset,representations)))
+	#print("index test calculation...")
+	#print("indextest="+str(me.indexTest(testset,representations)))
+	#end
+	#closest representations list
+	for c in me.closestRepresentationList(testset,representations):
+		print (onlyfiles[testset_beggining+c[0]],
+				onlyfiles[testset_beggining+c[1]],
+				c[2])
+	#end
 	min_dist=10000000;
 	ijmindist=(-1,-1)
 	closest=[]
@@ -302,12 +311,12 @@ def test_mnist():
 		minOriginalDisti=-1;
 		for j in range(len(testset)):
 			if(i!=j):
-				original_distances.append(euclid(testset[i],testset[j]))
+				original_distances.append(me.euclid(testset[i],testset[j]))
 				representation_distances.append(
-					euclid(representations[i],representations[j]))
-				distance=euclid(representations[i],representations[j])
+					me.euclid(representations[i],representations[j]))
+				distance=me.euclid(representations[i],representations[j])
 				sortedRepresentationDist.append((j,distance));
-				original_dist=euclid(testset[i],testset[j])
+				original_dist=me.euclid(testset[i],testset[j])
 				if(original_dist<minOriginalDist):
 					minOriginalDist=original_dist;
 					minOriginalDisti=j;
@@ -334,13 +343,6 @@ def test_mnist():
 		datedistavg+=dayspan(onlyfiles[int(0.9*len(original_instances))+i],
 					   onlyfiles[int(0.9*len(original_instances))+closestI])
 		datedistn+=1;
-	print("indextest:",indexTestSum/len(testset))
-	print("correlation:",np.corrcoef(
-		original_distances, representation_distances)[0, 1])
-	most_apart=0;
-	for c in sorted(closest, key=lambda x: x[2], reverse=True):
-		print c;
-		most_apart=c;
 	datedistavg/=datedistn;
 	print("date distance average:",datedistavg)
 	print("min dayspan for min distance:",min_span)
