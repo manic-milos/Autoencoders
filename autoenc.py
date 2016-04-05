@@ -250,10 +250,10 @@ def test_mnist():
 	fig, axs = plt.subplots(1, len(hidden_layer))
 	node_counter=0
 	for node in hidden_layer:
-		axs[node_counter].imshow(visualization.mapnodestoimg(
+		fig.colorbar(axs[node_counter].imshow(visualization.mapnodestoimg(
 			node,
 			img_dims['x'],img_dims['y'],
-			coords))
+			coords)),ax=axs[node_counter],shrink=0.2)
 		node_counter+=1;
 	fig.canvas.set_window_title('Skriveni neuroni')
 	fig.show()
@@ -289,97 +289,52 @@ def test_mnist():
 	#print("indextest="+str(me.indexTest(testset,representations)))
 	#end
 	#closest representations list
-	for c in me.closestRepresentationList(testset,representations):
-		print (onlyfiles[testset_beggining+c[0]],
-				onlyfiles[testset_beggining+c[1]],
-				c[2])
+	closestRepresentations=me.closestRepresentationList(testset,representations)
+	#for c in closestRepresentations:
+		#print (onlyfiles[testset_beggining+c[0]],
+				#onlyfiles[testset_beggining+c[1]],
+				#c[2])
 	#end
-	min_dist=10000000;
-	ijmindist=(-1,-1)
-	closest=[]
-	datedistavg=0;
-	datedistn=0;
-	min_span=1000000
-	original_distances=[]
-	representation_distances=[]
-	indexTestSum=0
-	for i in range(len(testset)):
-		closestI=-1;
-		closestDistance=1000000;
-		sortedRepresentationDist=[]
-		minOriginalDist=10000000;
-		minOriginalDisti=-1;
-		for j in range(len(testset)):
-			if(i!=j):
-				original_distances.append(me.euclid(testset[i],testset[j]))
-				representation_distances.append(
-					me.euclid(representations[i],representations[j]))
-				distance=me.euclid(representations[i],representations[j])
-				sortedRepresentationDist.append((j,distance));
-				original_dist=me.euclid(testset[i],testset[j])
-				if(original_dist<minOriginalDist):
-					minOriginalDist=original_dist;
-					minOriginalDisti=j;
-				if(distance<min_dist):
-					min_dist=distance;
-					ijmindist=(i,j)
-				if(distance<closestDistance):
-					closestI=j;
-					closestDistance=distance;
-		sortedRepresentationDist.sort(key=lambda x:x[1])
-		for si in range(len(sortedRepresentationDist)):
-			if(sortedRepresentationDist[si][0]==minOriginalDisti):
-				indexTestSum+=si+1;
-		closest.append((onlyfiles[int(0.9*len(original_instances))+i],
-				  onlyfiles[int(0.9*len(original_instances))+closestI],closestDistance))
-		day_span=dayspan(onlyfiles[int(0.9*len(original_instances))+i],
-				   onlyfiles[int(0.9*len(original_instances))+closestI])
-		if(min_span>day_span):
-			min_span=day_span;
-			if(day_span==1):
-				print("najblizi:",
-		  onlyfiles[int(0.9*len(original_instances))+i],
-		  onlyfiles[int(0.9*len(original_instances))+closestI],closestDistance)
-		datedistavg+=dayspan(onlyfiles[int(0.9*len(original_instances))+i],
-					   onlyfiles[int(0.9*len(original_instances))+closestI])
-		datedistn+=1;
-	datedistavg/=datedistn;
-	print("date distance average:",datedistavg)
-	print("min dayspan for min distance:",min_span)
-	print(onlyfiles[int(0.9*len(original_instances))+ijmindist[0]],
-		onlyfiles[int(0.9*len(original_instances))+ijmindist[1]],min_dist)
-	print("minimax1:",min(testset[ijmindist[0]]),max(testset[ijmindist[0]]))
+	c=closestRepresentations[-1]
+	#minimal representation distance
+	print("minimal distance dates:")
+	print(onlyfiles[testset_beggining+c[0]],
+		onlyfiles[testset_beggining+c[1]],c[2])
+	#end
+	print("minimax1:",min(testset[c[0]]),max(testset[c[0]]))
 	print("minimax1original:",
-	   min(original_instances[int(0.9*len(original_instances))+ijmindist[0]]),
-	   max(original_instances[int(0.9*len(original_instances))+ijmindist[0]]))
-	print("minimax2:",min(testset[ijmindist[1]]),max(testset[ijmindist[1]]))
+	   min(original_instances[testset_beggining+c[0]]),
+	   max(original_instances[testset_beggining+c[0]]))
+	print("minimax2:",min(testset[c[1]]),max(testset[c[1]]))
 	print("minimax2original:",
-	   min(original_instances[int(0.9*len(original_instances))+ijmindist[1]]),
-	   max(original_instances[int(0.9*len(original_instances))+ijmindist[1]]))
-	print(representations[ijmindist[0]],representations[ijmindist[1]])
+	   min(original_instances[testset_beggining+c[1]]),
+	   max(original_instances[testset_beggining+c[1]]))
+	print(representations[c[0]],representations[c[1]])
 	fig, axs = plt.subplots(2, 2)
 	recons=sess.run(ae['y'],feed_dict={
-		ae['x']:[testset[ijmindist[0]],
-		   testset[ijmindist[1]]]})
+		ae['x']:[testset[c[0]],
+		   testset[c[1]]]})
 	ax1=axs[0][0].imshow(visualization.mapnodestoimg(
-		testset[ijmindist[0]],
+		testset[c[0]],
 		img_dims['x'],img_dims['y'],
 		coords));
 	ax2=axs[0][1].imshow(visualization.mapnodestoimg(
-		testset[ijmindist[1]],
+		testset[c[1]],
 		img_dims['x'],img_dims['y'],
 		coords))
-	axs[1][0].imshow(visualization.mapnodestoimg(
+	ax3=axs[1][0].imshow(visualization.mapnodestoimg(
 		recons[0],
 		img_dims['x'],img_dims['y'],
 		coords));
-	axs[1][1].imshow(visualization.mapnodestoimg(
+	ax4=axs[1][1].imshow(visualization.mapnodestoimg(
 		recons[1],
 		img_dims['x'],img_dims['y'],
 		coords))
 	fig.canvas.set_window_title('Najblizi datumi')
-	fig.colorbar(ax1)
-	fig.colorbar(ax2)
+	fig.colorbar(mappable=ax1,ax=axs[0][0])
+	fig.colorbar(mappable=ax1,ax=axs[0][1])
+	fig.colorbar(mappable=ax3,ax=axs[1][0])
+	fig.colorbar(mappable=ax4,ax=axs[1][1])
 	fig.show()
 	plt.draw()
 	plt.waitforbuttonpress()

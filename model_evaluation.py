@@ -54,9 +54,10 @@ def closestRepresentationList(testset,representations):
 		closestI=-1;
 		closestDistance=1000000;
 		for j in range(len(testset)):
-			distance=euclid(representations[i],representations[j])
-			if(distance<closestDistance):
-				closestDistance=distance;
-				closestI=j
-			closestRepresentations.append((i,closestI,closestDistance))
+			if(i!=j):
+				distance=euclid(representations[i],representations[j])
+				if(distance<closestDistance):
+					closestDistance=distance;
+					closestI=j
+		closestRepresentations.append((i,closestI,closestDistance))
 	return sorted(closestRepresentations,key=lambda x: x[2])
