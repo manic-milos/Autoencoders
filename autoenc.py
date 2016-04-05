@@ -90,18 +90,6 @@ def cosine_sim(a,b):
 #def euclid(a,b):
 	#return math.sqrt(sum((np.array(a)-np.array(b))**2))
 
-def dayspan(a,b):
-	date1=a.split('.')[0]
-	date2=b.split('.')[0]
-	month1=date1[4:6]
-	month2=date2[4:6]
-	day1=date1[6:]
-	day2=date2[6:]
-	date1=date(1990,int(month1),int(day1))
-	date2=date(1990,int(month2),int(day2))
-	date11=date(1991,int(month1),int(day1))
-	date12=date(1989,int(month1),int(day1))
-	return min(abs((date1-date2).days),(date11-date2).days,(date2-date12).days)
 
 
 # %% Autoencoder definition
@@ -179,12 +167,12 @@ def test_mnist():
 	#mean_img = np.mean(instances, axis=0)
 	
 	trainingset=instances[1:int(0.8*len(instances))];
-	np.random.seed(1)
+	np.random.seed(3)
 	trainingset=np.random.permutation(np.array(trainingset));
 	validationset=instances[int(0.8*len(instances)):int(0.9*len(instances))];
 	testset=instances[int(0.9*len(instances)):];
 	testset_beggining=int(0.9*len(instances))
-	hidden_node_number=5
+	hidden_node_number=3
 	ae = autoencoder(dimensions=[len(trainingset[0]), hidden_node_number])
 
 	# %%
@@ -200,7 +188,7 @@ def test_mnist():
 	# Fit all training data
 	
 	batch_size = 20
-	n_epochs = 1000
+	n_epochs = 2500
 	trainingNow=True;
 	filename='./models/';
 	filename+=str(hidden_node_number)+'n'+str(batch_size)+'b'+str(n_epochs)+'e';
@@ -220,19 +208,15 @@ def test_mnist():
 		elif(decision!=2):
 			print("not an allowed choice...")
 			quit()
-		continuedTraining=True
 	if(trainingNow==True):
-		from_epoch=1000;
-		if(continuedTraining):
-			if(from_epoch>0):
-				partialmodelfile='./models/'+str(
-					hidden_node_number)+'n'+str(
-						batch_size)+'b'+str(
-							from_epoch)+'e'+'.ckpnt';
-				saver.restore(sess, partialmodelfile)
-				print("Partial model restored.")
-		else:
-			from_epoch=0
+		from_epoch=2050;
+		if(from_epoch>0):
+			partialmodelfile='./models/'+str(
+				hidden_node_number)+'n'+str(
+					batch_size)+'b'+str(
+						from_epoch)+'e'+'.ckpnt';
+			saver.restore(sess, partialmodelfile)
+			print("Partial model restored.")
 		for epoch_i in range(from_epoch,n_epochs):
 			i_batch=0;
 			c=0;
@@ -302,7 +286,17 @@ def test_mnist():
 				onlyfiles[testset_beggining+c[1]],
 				c[2])
 	#end
+	#average closest representation dayspan
+	avgdayspan=0
+	for c in closestRepresentations:
+		avgdayspan+=me.dayspan(onlyfiles[testset_beggining+ c[0]],
+								onlyfiles[testset_beggining+ c[1]])
+	avgdayspan/=len(closestRepresentations)
+	print("average day span="+str(avgdayspan))
+	#end
+	#closest distance representations
 	c=closestRepresentations[0]
+	#end
 	#minimal representation distance
 	print("minimal distance dates:")
 	print(onlyfiles[testset_beggining+c[0]],

@@ -1,7 +1,21 @@
 import numpy as np
 import math
+from datetime import date
 def euclid(a,b):
 	return math.sqrt(sum((np.array(a)-np.array(b))**2))
+
+def dayspan(a,b):
+	date1=a.split('.')[0]
+	date2=b.split('.')[0]
+	month1=date1[4:6]
+	month2=date2[4:6]
+	day1=date1[6:]
+	day2=date2[6:]
+	date1=date(1990,int(month1),int(day1))
+	date2=date(1990,int(month2),int(day2))
+	date11=date(1991,int(month1),int(day1))
+	date12=date(1989,int(month1),int(day1))
+	return min(abs((date1-date2).days),(date11-date2).days,(date2-date12).days)
 
 def compression_loss(testset,recon):
 	compression_loss=0;
@@ -26,6 +40,7 @@ def correlation(testset,representations):
 					euclid(representations[i],representations[j]))
 	return np.corrcoef(
 		original_img_distances, representation_distances)[0, 1]
+
 def indexTest(testset,representations):
 	indexTestSum=0
 	for i in range(len(testset)):
