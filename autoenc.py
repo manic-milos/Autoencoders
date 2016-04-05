@@ -66,10 +66,10 @@ print("min",instance_min)
 instance_max-=instance_min;
 original_instances=instances;
 instances=(np.array(instances)-instance_min)/instance_max;
-for i in range(len(instances)):
-	if((original_instances[i]-(instances[i]*instance_max+instance_min)).any()>1):
-		print(i);
-quit()
+#for i in range(len(instances)):
+	#if((original_instances[i]-(instances[i]*instance_max+instance_min)).any()>1):
+		#print(i);
+#quit()
 #for instance in range(len(instances)):
 	#for entry in range(len(instances[instance])):
 		#instances[instance][entry]-=instance_min;
