@@ -283,11 +283,16 @@ def test_mnist():
 	datedistavg=0;
 	datedistn=0;
 	min_span=1000000
+	original_distances=[]
+	representation_distances=[]
 	for i in range(len(testset)):
 		closestI=-1;
 		closestDistance=1000000;
 		for j in range(len(testset)):
 			if(i!=j):
+				original_distances.append(euclid(testset[i],testset[j]))
+				representation_distances.append(
+					euclid(representations[i],representations[j]))
 				distance=euclid(representations[i],representations[j])
 				if(distance<min_dist):
 					min_dist=distance;
@@ -308,6 +313,8 @@ def test_mnist():
 		datedistavg+=dayspan(onlyfiles[int(0.9*len(original_instances))+i],
 					   onlyfiles[int(0.9*len(original_instances))+closestI])
 		datedistn+=1;
+	print("correlation:",np.corrcoef(
+		original_distances, representation_distances)[0, 1])
 	most_apart=0;
 	for c in sorted(closest, key=lambda x: x[2], reverse=True):
 		print c;
