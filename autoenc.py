@@ -278,9 +278,9 @@ def test_mnist():
 	print("correlation on closest="+str(
 		me.closestRepCorrelation(testset,representations)))
 	print("correlation calculating...")
-	#print("correlation="+str(me.correlation(testset,representations)))
+	print("correlation="+str(me.correlation(testset,representations)))
 	print("index test calculation...")
-	#print("indextest="+str(me.indexTest(testset,representations)))
+	print("indextest="+str(me.indexTest(testset,representations)))
 	#end
 	#closest representations list
 	closestRepresentations=me.closestRepresentationList(testset,representations)
