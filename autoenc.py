@@ -172,7 +172,7 @@ def test_mnist():
 	validationset=instances[int(0.8*len(instances)):int(0.9*len(instances))];
 	testset=instances[int(0.9*len(instances)):];
 	testset_beggining=int(0.9*len(instances))
-	hidden_node_number=3
+	hidden_node_number=5
 	ae = autoencoder(dimensions=[len(trainingset[0]), hidden_node_number])
 
 	# %%
@@ -188,7 +188,7 @@ def test_mnist():
 	# Fit all training data
 	
 	batch_size = 20
-	n_epochs = 2500
+	n_epochs = 1555
 	trainingNow=True;
 	filename='./models/';
 	filename+=str(hidden_node_number)+'n'+str(batch_size)+'b'+str(n_epochs)+'e';
@@ -209,7 +209,7 @@ def test_mnist():
 			print("not an allowed choice...")
 			quit()
 	if(trainingNow==True):
-		from_epoch=2050;
+		from_epoch=1002;
 		if(from_epoch>0):
 			partialmodelfile='./models/'+str(
 				hidden_node_number)+'n'+str(
@@ -274,10 +274,13 @@ def test_mnist():
 	print("compression loss:",me.compression_loss(testset,recon))
 	#end
 	#statistics
+	print("correlation on closest calculating...")
+	print("correlation on closest="+str(
+		me.closestRepCorrelation(testset,representations)))
 	print("correlation calculating...")
-	print("correlation="+str(me.correlation(testset,representations)))
+	#print("correlation="+str(me.correlation(testset,representations)))
 	print("index test calculation...")
-	print("indextest="+str(me.indexTest(testset,representations)))
+	#print("indextest="+str(me.indexTest(testset,representations)))
 	#end
 	#closest representations list
 	closestRepresentations=me.closestRepresentationList(testset,representations)

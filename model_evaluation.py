@@ -76,3 +76,22 @@ def closestRepresentationList(testset,representations):
 					closestI=j
 		closestRepresentations.append((i,closestI,closestDistance))
 	return sorted(closestRepresentations,key=lambda x: x[2])
+
+def closestRepCorrelation(testset,representations):
+	closestRepresentations=[]
+	original_distance=[]
+	for i in range(len(testset)):
+		closestI=-1;
+		closestDistance=1000000;
+		for j in range(len(testset)):
+			if(i!=j):
+				distance=euclid(representations[i],representations[j])
+				if(distance<closestDistance):
+					closestDistance=distance;
+					closestI=j
+		closestRepresentations.append(closestDistance)
+		original_distance.append(euclid(testset[i],testset[closestI]))
+	return np.corrcoef(
+		closestRepresentations, original_distance)[0, 1]
+	
+	
