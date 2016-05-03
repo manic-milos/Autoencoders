@@ -93,5 +93,18 @@ def closestRepCorrelation(testset,representations):
 		original_distance.append(euclid(testset[i],testset[closestI]))
 	return np.corrcoef(
 		closestRepresentations, original_distance)[0, 1]
-	
-	
+
+def cosine_sim(a,b):
+	sim=0;
+	for i in range(len(a)):
+		sim+=a[i]*b[i];
+	a_norm=0;
+	for i in range(len(a)):
+		a_norm+=a[i]*a[i];
+	b_norm=0;
+	for i in range(len(a)):
+		b_norm+=b[i]*b[i];
+	a_norm=math.sqrt(a_norm)
+	b_norm=math.sqrt(b_norm)
+	sim/=a_norm*b_norm;
+	return sim;

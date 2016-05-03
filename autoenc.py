@@ -11,85 +11,12 @@ import visualization
 import model_evaluation as me
 import copy
 import sys
+import data_loading as dl
+
+instances, coords, original_instances, img_dims=dl.load_maps("termalmaps");
 
 from os import listdir
 from os.path import isfile, join
-mypath="termalmaps"
-onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f))]
-onlyfiles.sort()
-instances=[]
-borders=[]
-img_dims={'x':0,'y':0};
-coords=[]
-percentindex=0
-print "opening files:    ",
-for filename in onlyfiles:
-	f=open(mypath+"/"+filename,'r')
-	values=[]
-	NAcell=True;
-	img_dims['y']=0;
-	coords=np.zeros(len(onlyfiles));
-	y=0;
-	coords=[]
-	for line in f:
-		img_dims['y']+=1;
-		img_dims['x']=0;
-		border=[];
-		cells=line.split(' ');
-		x=0;
-		for cell in cells:
-			img_dims['x']+=1;
-			if(cell!='NA'):
-				try:
-					values.append(float(cell));
-					coords.append((x,y));
-				except ValueError:
-					continue
-			x=x+1;
-		y=y+1;
-	instances.append(values);
-	digits=2
-	print "{0}{1:{2}}%".format(
-					"\b" * (digits + 1+1), 
-					int((percentindex+0.0)/len(onlyfiles)*100),
-					digits),
-	sys.stdout.flush()
-	percentindex+=1
-print "{0}{1:{2}}%".format(
-					"\b" * (digits + 1+1), 
-					100,
-					digits)
-instance_min=min(min(instances[:]));
-instance_max=max(max(instances[:]));
-print("max:",instance_max)
-print("min",instance_min)
-instance_max-=instance_min;
-original_instances=instances;
-instances=(np.array(instances)-instance_min)/instance_max;
-#for instance in range(len(instances)):
-	#for entry in range(len(instances[instance])):
-		#instances[instance][entry]-=instance_min;
-		#instances[instance][entry]/=instance_max;
-
-def cosine_sim(a,b):
-	sim=0;
-	for i in range(len(a)):
-		sim+=a[i]*b[i];
-	a_norm=0;
-	for i in range(len(a)):
-		a_norm+=a[i]*a[i];
-	b_norm=0;
-	for i in range(len(a)):
-		b_norm+=b[i]*b[i];
-	a_norm=math.sqrt(a_norm)
-	b_norm=math.sqrt(b_norm)
-	sim/=a_norm*b_norm;
-	return sim;
-
-#def euclid(a,b):
-	#return math.sqrt(sum((np.array(a)-np.array(b))**2))
-
-
 
 # %% Autoencoder definition
 def autoencoder(dimensions=[784, 512, 256, 64]):
@@ -177,7 +104,7 @@ def test_mnist():
 	validationset=instances[int(0.8*len(instances)):int(0.9*len(instances))];
 	testset=instances[int(0.9*len(instances)):];
 	testset_beggining=int(0.9*len(instances))
-	hidden_node_number=2000
+	hidden_node_number=3
 	ae = autoencoder(dimensions=[len(trainingset[0]), hidden_node_number])
 
 	# %%
@@ -193,7 +120,7 @@ def test_mnist():
 	# Fit all training data
 	
 	batch_size = 20
-	n_epochs =250;
+	n_epochs =500;
 	trainingNow=True;
 	filename='./models/';
 	filename+=str(hidden_node_number)+'n'+str(batch_size)+'b'+str(n_epochs)+'e';
