@@ -12,79 +12,14 @@ import model_evaluation as me
 import copy
 import sys
 import data_loading as dl
+import autoencoder_definition as autoenc_def
 
-instances, coords, original_instances, img_dims=dl.load_maps("termalmaps");
+[instances, coords, 
+	original_instances, img_dims, 
+	onlyfiles]=dl.load_maps("termalmaps");
 
 from os import listdir
 from os.path import isfile, join
-
-# %% Autoencoder definition
-def autoencoder(dimensions=[784, 512, 256, 64]):
-	"""Build a deep autoencoder w/ tied weights.
-
-	Parameters
-	----------
-	dimensions : list, optional
-		The number of neurons for each layer of the autoencoder.
-
-	Returns
-	-------
-	x : Tensor
-		Input placeholder to the network
-	z : Tensor
-		Inner-most latent representation
-	y : Tensor
-		Output reconstruction of the input
-	cost : Tensor
-		Overall cost to use for training
-	"""
-	# %% input to the network
-	x = tf.placeholder(tf.float32, [None, dimensions[0]], name='x')
-	current_input = x
-
-	# %% Build the encoder
-	encoder = []
-	for layer_i, n_output in enumerate(dimensions[1:]):
-		n_input = int(current_input.get_shape()[1])
-		W = tf.Variable(
-			tf.random_uniform([n_input, n_output],
-							  #-1.0 / math.sqrt(n_input),
-							  -math.sqrt(6.0/(n_input+n_output)),
-							  #1.0 / math.sqrt(n_input)),
-							  math.sqrt(6.0/(n_input+n_output)),
-							  name='encoderW'))
-		b = tf.Variable(tf.zeros([n_output]),name='encoderb')
-		encoder.append(W)
-		output = tf.nn.sigmoid(tf.matmul(current_input, W) + b)
-		current_input = output
-
-	# %% latent representation
-	z = W
-	representation=current_input;
-	encoder.reverse()
-
-	# %% Build the decoder using the same weights
-	for layer_i, n_output in enumerate(dimensions[:-1][::-1]):
-#        W = tf.transpose(encoder[layer_i])
-		n_input = int(current_input.get_shape()[1])
-		W = tf.Variable(
-			tf.random_uniform([n_input, n_output],
-							  #-1.0 / math.sqrt(n_input),
-							  -math.sqrt(6.0/(n_input+n_output)),
-							  #1.0 / math.sqrt(n_input)),
-								math.sqrt(6.0/(n_input+n_output)),
-								name='decoderW'))
-		tf.assign(W,tf.transpose(encoder[layer_i]))
-		b = tf.Variable(tf.zeros([n_output]),name='decoderb')
-		output = tf.nn.sigmoid(tf.matmul(current_input, W) + b)
-		current_input = output
-
-	# %% now have the reconstruction through the network
-	y = current_input
-	# %% cost function measures pixel-wise difference
-	cost = tf.reduce_sum(tf.square(y - x))
-	return {'x': x, 'z': z, 'y': y, 'cost': cost,'enc':encoder,'represent':representation}
-
 
 # %% Basic test
 def test_mnist():
@@ -105,7 +40,7 @@ def test_mnist():
 	testset=instances[int(0.9*len(instances)):];
 	testset_beggining=int(0.9*len(instances))
 	hidden_node_number=3
-	ae = autoencoder(dimensions=[len(trainingset[0]), hidden_node_number])
+	ae = autoenc_def.autoencoder(dimensions=[len(trainingset[0]), hidden_node_number])
 
 	# %%
 	learning_rate = 0.0001
@@ -120,7 +55,7 @@ def test_mnist():
 	# Fit all training data
 	
 	batch_size = 20
-	n_epochs =500;
+	n_epochs =200;
 	trainingNow=True;
 	filename='./models/';
 	filename+=str(hidden_node_number)+'n'+str(batch_size)+'b'+str(n_epochs)+'e';

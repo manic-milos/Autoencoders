@@ -56,5 +56,5 @@ def load_maps(mypath):
     original_instances=instances;
     instances=(np.array(instances)-instance_min)/instance_max;
     return [instances,coords,original_instances,
-        img_dims]
+        img_dims,onlyfiles]
         
