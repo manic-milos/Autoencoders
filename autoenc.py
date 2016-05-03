@@ -10,6 +10,7 @@ from datetime import date
 import visualization
 import model_evaluation as me
 import copy
+import sys
 
 from os import listdir
 from os.path import isfile, join
@@ -20,14 +21,14 @@ instances=[]
 borders=[]
 img_dims={'x':0,'y':0};
 coords=[]
+percentindex=0
+print "opening files:    ",
 for filename in onlyfiles:
 	f=open(mypath+"/"+filename,'r')
 	values=[]
 	NAcell=True;
-	borders=[];
 	img_dims['y']=0;
 	coords=np.zeros(len(onlyfiles));
-	add_counter=0;
 	y=0;
 	coords=[]
 	for line in f:
@@ -35,7 +36,6 @@ for filename in onlyfiles:
 		img_dims['x']=0;
 		border=[];
 		cells=line.split(' ');
-		counter=0;
 		x=0;
 		for cell in cells:
 			img_dims['x']+=1;
@@ -43,23 +43,22 @@ for filename in onlyfiles:
 				try:
 					values.append(float(cell));
 					coords.append((x,y));
-					add_counter+=1;
-					if(NAcell==True):
-						border.append(counter);
-						NAcell=False;
 				except ValueError:
 					continue
-			else:
-				if(NAcell==False):
-					border.append(counter);
-					NAcell=True;
-			counter+=1;
 			x=x+1;
-		border.append(img_dims['x']);
-		borders.append(border);
 		y=y+1;
 	instances.append(values);
-
+	digits=2
+	print "{0}{1:{2}}%".format(
+					"\b" * (digits + 1+1), 
+					int((percentindex+0.0)/len(onlyfiles)*100),
+					digits),
+	sys.stdout.flush()
+	percentindex+=1
+print "{0}{1:{2}}%".format(
+					"\b" * (digits + 1+1), 
+					100,
+					digits)
 instance_min=min(min(instances[:]));
 instance_max=max(max(instances[:]));
 print("max:",instance_max)
@@ -122,8 +121,11 @@ def autoencoder(dimensions=[784, 512, 256, 64]):
 		n_input = int(current_input.get_shape()[1])
 		W = tf.Variable(
 			tf.random_uniform([n_input, n_output],
-							  -1.0 / math.sqrt(n_input),
-							  1.0 / math.sqrt(n_input)),name='encoderW')
+							  #-1.0 / math.sqrt(n_input),
+							  -math.sqrt(6.0/(n_input+n_output)),
+							  #1.0 / math.sqrt(n_input)),
+							  math.sqrt(6.0/(n_input+n_output)),
+							  name='encoderW'))
 		b = tf.Variable(tf.zeros([n_output]),name='encoderb')
 		encoder.append(W)
 		output = tf.nn.sigmoid(tf.matmul(current_input, W) + b)
@@ -140,8 +142,11 @@ def autoencoder(dimensions=[784, 512, 256, 64]):
 		n_input = int(current_input.get_shape()[1])
 		W = tf.Variable(
 			tf.random_uniform([n_input, n_output],
-							  -1.0 / math.sqrt(n_input),
-							  1.0 / math.sqrt(n_input)),name='decoderW')
+							  #-1.0 / math.sqrt(n_input),
+							  -math.sqrt(6.0/(n_input+n_output)),
+							  #1.0 / math.sqrt(n_input)),
+								math.sqrt(6.0/(n_input+n_output)),
+								name='decoderW'))
 		tf.assign(W,tf.transpose(encoder[layer_i]))
 		b = tf.Variable(tf.zeros([n_output]),name='decoderb')
 		output = tf.nn.sigmoid(tf.matmul(current_input, W) + b)
@@ -172,11 +177,11 @@ def test_mnist():
 	validationset=instances[int(0.8*len(instances)):int(0.9*len(instances))];
 	testset=instances[int(0.9*len(instances)):];
 	testset_beggining=int(0.9*len(instances))
-	hidden_node_number=5
+	hidden_node_number=2000
 	ae = autoencoder(dimensions=[len(trainingset[0]), hidden_node_number])
 
 	# %%
-	learning_rate = 0.001
+	learning_rate = 0.0001
 	optimizer = tf.train.AdamOptimizer(learning_rate).minimize(ae['cost'])
 
 	# %%
@@ -188,7 +193,7 @@ def test_mnist():
 	# Fit all training data
 	
 	batch_size = 20
-	n_epochs = 1555
+	n_epochs =250;
 	trainingNow=True;
 	filename='./models/';
 	filename+=str(hidden_node_number)+'n'+str(batch_size)+'b'+str(n_epochs)+'e';
@@ -209,7 +214,7 @@ def test_mnist():
 			print("not an allowed choice...")
 			quit()
 	if(trainingNow==True):
-		from_epoch=1002;
+		from_epoch=0;
 		if(from_epoch>0):
 			partialmodelfile='./models/'+str(
 				hidden_node_number)+'n'+str(
@@ -220,11 +225,23 @@ def test_mnist():
 		for epoch_i in range(from_epoch,n_epochs):
 			i_batch=0;
 			c=0;
+			print("epoch "+str(epoch_i)+":    "),
 			for batch_i in range(len(trainingset) // batch_size):
 				batch_xs= trainingset[i_batch:i_batch+batch_size]
 				i_batch=i_batch+batch_size
 				train = np.array(batch_xs)
 				sess.run(optimizer, feed_dict={ae['x']: train})
+				digits=2
+				print "{0}{1:{2}}%".format(
+					"\b" * (digits + 1+1), 
+					int((batch_i+0.0)/(len(trainingset) // batch_size)*100),
+					digits),
+				sys.stdout.flush()
+			digits=3
+			print "{0}{1:{2}}%".format(
+					"\b" * (digits + 1), 
+					100,
+					digits)
 			costtr,latent=sess.run([ae['cost'],ae['z']], feed_dict={ae['x']: trainingset})
 			costtr/=len(trainingset)*len(trainingset[0])
 			costval=sess.run(ae['cost'], feed_dict={ae['x']: validationset})
@@ -278,9 +295,9 @@ def test_mnist():
 	print("correlation on closest="+str(
 		me.closestRepCorrelation(testset,representations)))
 	print("correlation calculating...")
-	print("correlation="+str(me.correlation(testset,representations)))
+	#print("correlation="+str(me.correlation(testset,representations)))
 	print("index test calculation...")
-	print("indextest="+str(me.indexTest(testset,representations)))
+	#print("indextest="+str(me.indexTest(testset,representations)))
 	#end
 	#closest representations list
 	closestRepresentations=me.closestRepresentationList(testset,representations)
@@ -290,6 +307,7 @@ def test_mnist():
 				c[2])
 	#end
 	#average closest representation dayspan
+	
 	avgdayspan=0
 	for c in closestRepresentations:
 		avgdayspan+=me.dayspan(onlyfiles[testset_beggining+ c[0]],
@@ -298,7 +316,7 @@ def test_mnist():
 	print("average day span="+str(avgdayspan))
 	#end
 	#closest distance representations
-	c=closestRepresentations[0]
+	c=min(closestRepresentations,key=lambda x:x[2])
 	#end
 	#minimal representation distance
 	print("minimal distance dates:")
