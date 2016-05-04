@@ -14,10 +14,15 @@ import sys
 import data_loading as dl
 import autoencoder_definition as autoenc_def
 
-[instances, coords, 
-	original_instances, img_dims, 
-	onlyfiles]=dl.load_maps("termalmaps");
-
+# [instances, coords, 
+# 	original_instances, img_dims, 
+# 	onlyfiles]=dl.load_maps("termalmaps");
+[instances,
+	coords,
+	img_dims,
+	onlyfiles]=dl.load_nodes_with_schema("termalmaps",
+	"mapschema.csv");
+original_instances=instances;
 from os import listdir
 from os.path import isfile, join
 
@@ -39,16 +44,20 @@ def test_mnist():
 	validationset=instances[int(0.8*len(instances)):int(0.9*len(instances))];
 	testset=instances[int(0.9*len(instances)):];
 	testset_beggining=int(0.9*len(instances))
-	hidden_node_number=3
+	hidden_node_number=5
 	ae = autoenc_def.autoencoder(dimensions=[len(trainingset[0]), hidden_node_number])
 
 	# %%
 	learning_rate = 0.0001
 	optimizer = tf.train.AdamOptimizer(learning_rate).minimize(ae['cost'])
-
+	traincostsum=tf.scalar_summary('traincost',ae['cost'])
+	testcostsum=tf.scalar_summary('valcost',ae['cost'])
+	# merge=tf.merge_all_summaries()
+	
 	# %%
 	# We create a session to use the graph
 	sess = tf.Session()
+	train_writer = tf.train.SummaryWriter("." + '/train')
 	sess.run(tf.initialize_all_variables())
 	saver = tf.train.Saver()
 	# %%
@@ -63,8 +72,7 @@ def test_mnist():
 	filename+='.ckpnt';
 	continuedTraining=False
 	if(isfile(filename)):
-		decision=input(
-			"File already exists,choose:\n0 to read,\n1 to add a v to the name\n2 to overwrite\n")
+		decision=input("File already exists,choose:\n0 to read,\n1 to add a v to the name\n2 to overwrite\n")
 		if(decision==0):
 			trainingNow=False;
 		elif(decision==1):
@@ -104,9 +112,11 @@ def test_mnist():
 					"\b" * (digits + 1), 
 					100,
 					digits)
-			costtr,latent=sess.run([ae['cost'],ae['z']], feed_dict={ae['x']: trainingset})
+			traincostsumcurr,costtr,latent=sess.run([traincostsum,ae['cost'],ae['z']], feed_dict={ae['x']: trainingset})
+			train_writer.add_summary(traincostsumcurr,epoch_i);
 			costtr/=len(trainingset)*len(trainingset[0])
-			costval=sess.run(ae['cost'], feed_dict={ae['x']: validationset})
+			valcost,costval=sess.run([testcostsum, ae['cost']], feed_dict={ae['x']: validationset})
+			train_writer.add_summary(valcost,epoch_i);
 			costval/=len(validationset)*len(validationset[0])		
 			print(epoch_i, math.sqrt(costtr),math.sqrt(costval),[len(latent),len(latent[0])])
 		save_path = saver.save(sess, filename)
@@ -125,6 +135,7 @@ def test_mnist():
 			img_dims['x'],img_dims['y'],
 			coords)),ax=axs[node_counter])
 		node_counter+=1;
+	
 	fig.canvas.set_window_title('Skriveni neuroni')
 	fig.show()
 	plt.draw()
@@ -186,13 +197,13 @@ def test_mnist():
 		onlyfiles[testset_beggining+c[1]],c[2])
 	#end
 	print("minimax1:",min(testset[c[0]]),max(testset[c[0]]))
-	print("minimax1original:",
-	   min(original_instances[testset_beggining+c[0]]),
-	   max(original_instances[testset_beggining+c[0]]))
+	# print("minimax1original:",
+	#    min(original_instances[testset_beggining+c[0]]),
+	#    max(original_instances[testset_beggining+c[0]]))
 	print("minimax2:",min(testset[c[1]]),max(testset[c[1]]))
-	print("minimax2original:",
-	   min(original_instances[testset_beggining+c[1]]),
-	   max(original_instances[testset_beggining+c[1]]))
+	# print("minimax2original:",
+	#    min(original_instances[testset_beggining+c[1]]),
+	#    max(original_instances[testset_beggining+c[1]]))
 	print(representations[c[0]],representations[c[1]])
 	fig, axs = plt.subplots(2, 2)
 	recons=sess.run(ae['y'],feed_dict={

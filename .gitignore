@@ -1,2 +1,5 @@
 termalmaps/*
 .vscode*
+converted/*
+models/*
+train/
