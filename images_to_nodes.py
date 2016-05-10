@@ -27,7 +27,7 @@ while(line !=""):
 	height+=1;
 	line=f.readline();
 print len(coords);
-print "width="+str();
+print "width="+str(width);
 print "height="+str(height);
 w.write(str(width)+" "+str(height)+"\n");
 

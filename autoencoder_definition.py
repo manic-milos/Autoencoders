@@ -69,6 +69,6 @@ def autoencoder(dimensions=[784, 512, 256, 64]):
 	# %% now have the reconstruction through the network
 	y = current_input
 	# %% cost function measures pixel-wise difference
-	cost = tf.reduce_mean(tf.abs(y - x))
+	cost = tf.reduce_mean(tf.nn.l2_loss(x-y))
 	return {'x': x, 'z': z, 'y': y, 'cost': cost,'enc':encoder,'represent':representation}
 

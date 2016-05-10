@@ -63,7 +63,7 @@ def test_mnist():
 	# %%
 	# Fit all training data
 	
-	batch_size = 20
+	batch_size = 25
 	n_epochs =200;
 	trainingNow=True;
 	filename='./models/';
@@ -119,6 +119,8 @@ def test_mnist():
 			train_writer.add_summary(valcost,epoch_i);
 			costval/=len(validationset)*len(validationset[0])		
 			print(epoch_i, math.sqrt(costtr),math.sqrt(costval),[len(latent),len(latent[0])])
+			
+		print("filename",filename);
 		save_path = saver.save(sess, filename)
 		print("Model saved in file: %s" % save_path)
 	else:
