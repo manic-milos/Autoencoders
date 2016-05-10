@@ -40,7 +40,14 @@ converted_path="converted";
 if not exists(converted_path):
     	makedirs(converted_path)
 #convert files
+fileindex=0;
 for filename in files:
+	digits=2
+	print "{0}{1:{2}}%".format(
+					"\b" * (digits + 1+1), 
+					int((fileindex+0.0)/(len(files))*100),
+					digits),
+	sys.stdout.flush()
 	f=open(mypath+"/"+filename,"r");
 	w=open(converted_path+"/"+filename,"w");
 	for line in f:

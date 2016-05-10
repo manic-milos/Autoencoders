@@ -1,7 +1,3 @@
-"""Tutorial on how to create an autoencoder w/ Tensorflow.
-
-Parag K. Mital, Jan 2016
-"""
 # %% Imports
 import tensorflow as tf
 import numpy as np
@@ -44,11 +40,11 @@ def test_mnist():
 	validationset=instances[int(0.8*len(instances)):int(0.9*len(instances))];
 	testset=instances[int(0.9*len(instances)):];
 	testset_beggining=int(0.9*len(instances))
-	hidden_node_number=5
+	hidden_node_number=8
 	ae = autoenc_def.autoencoder(dimensions=[len(trainingset[0]), hidden_node_number])
 
 	# %%
-	learning_rate = 0.0001
+	learning_rate = 0.000001
 	optimizer = tf.train.AdamOptimizer(learning_rate).minimize(ae['cost'])
 	traincostsum=tf.scalar_summary('traincost',ae['cost'])
 	testcostsum=tf.scalar_summary('valcost',ae['cost'])
@@ -64,7 +60,7 @@ def test_mnist():
 	# Fit all training data
 	
 	batch_size = 25
-	n_epochs =200;
+	n_epochs =4000;
 	trainingNow=True;
 	filename='./models/';
 	filename+=str(hidden_node_number)+'n'+str(batch_size)+'b'+str(n_epochs)+'e';
@@ -84,7 +80,7 @@ def test_mnist():
 			print("not an allowed choice...")
 			quit()
 	if(trainingNow==True):
-		from_epoch=0;
+		from_epoch=3800;
 		if(from_epoch>0):
 			partialmodelfile='./models/'+str(
 				hidden_node_number)+'n'+str(

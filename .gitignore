@@ -3,3 +3,5 @@ termalmaps/*
 converted/*
 models/*
 train/
+converted_highres/*
+highres/*
