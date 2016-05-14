@@ -58,10 +58,11 @@ def load_maps(mypath):
 	instances=(np.array(instances)-instance_min)/instance_max;
 	return [instances,coords,original_instances,
 		img_dims,onlyfiles]
-def load_nodes_with_schema(mypath,schema):
+def load_nodes_with_schema(mypath,schema,limit=-1):
 	files=[f for f in listdir(mypath) if isfile(join(mypath,f))]
 	instances=[];
 	percentindex=0;
+	files.sort();
 	for filename in files:
 		f=open(mypath+"/"+filename,'r');
 		values=[];
@@ -80,6 +81,9 @@ def load_nodes_with_schema(mypath,schema):
 						digits),
 		sys.stdout.flush()
 		percentindex+=1
+		if(limit>=0):
+			if(percentindex==limit):
+				break;
 	print "{0}{1:{2}}%".format(
 						"\b" * (digits + 1+1), 
 						100,

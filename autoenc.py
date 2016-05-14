@@ -44,7 +44,7 @@ def test_mnist():
 	ae = autoenc_def.autoencoder(dimensions=[len(trainingset[0]), hidden_node_number])
 
 	# %%
-	learning_rate = 0.000001
+	learning_rate = 0.0002;
 	optimizer = tf.train.AdamOptimizer(learning_rate).minimize(ae['cost'])
 	traincostsum=tf.scalar_summary('traincost',ae['cost'])
 	testcostsum=tf.scalar_summary('valcost',ae['cost'])
@@ -60,7 +60,7 @@ def test_mnist():
 	# Fit all training data
 	
 	batch_size = 25
-	n_epochs =4000;
+	n_epochs =550;
 	trainingNow=True;
 	filename='./models/';
 	filename+=str(hidden_node_number)+'n'+str(batch_size)+'b'+str(n_epochs)+'e';
@@ -68,7 +68,7 @@ def test_mnist():
 	filename+='.ckpnt';
 	continuedTraining=False
 	if(isfile(filename)):
-		decision=input("File already exists,choose:\n0 to read,\n1 to add a v to the name\n2 to overwrite\n")
+		decision=input("File already exists, choose:\n0 to read,\n1 to add a v to the name\n2 to overwrite\n")
 		if(decision==0):
 			trainingNow=False;
 		elif(decision==1):
@@ -80,7 +80,7 @@ def test_mnist():
 			print("not an allowed choice...")
 			quit()
 	if(trainingNow==True):
-		from_epoch=3800;
+		from_epoch=0;
 		if(from_epoch>0):
 			partialmodelfile='./models/'+str(
 				hidden_node_number)+'n'+str(
