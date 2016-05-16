@@ -1,2 +1,2 @@
-model_checkpoint_path: "highres.ckpnt"
-all_model_checkpoint_paths: "highres.ckpnt"
+model_checkpoint_path: "s.ckpnt"
+all_model_checkpoint_paths: "s.ckpnt"

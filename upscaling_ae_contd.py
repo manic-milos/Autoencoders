@@ -4,13 +4,15 @@ import tensorflow as tf;
 import numpy as np;
 import matplotlib.pyplot as plt;
 import visualization as vis;
+import math;
+import model_evaluation as me;
 
 load_filename=raw_input("filename for import: ");
 print "loading filename=",load_filename;
 save_filename=raw_input("filename for export: ");
 print "saving filename=",save_filename;
 
-n_epochs=input("number of epochs to train: ");#todo drugacije
+n_epochs=input("number of epochs to train: ");#todo drugo mesto
 print "number_of_epochs",n_epochs;
 
 print "loading maps..."
@@ -60,6 +62,10 @@ loader=tf.train.Saver(var_list=[ae['encW'],
 			start_epoch]);
 if(load_filename!=""):
 	loader.restore(sess,load_filename);
+print "settings:";
+print "learning rate:",sess.run(learning_rate);
+print "batch_size:",sess.run(batch_size);
+print "start_epoch",sess.run(start_epoch);
 saver=tf.train.Saver(var_list=[ae['encW'],
 			ae['decW'],
 			ae['encb'],
@@ -85,30 +91,47 @@ error=10000000000;
 start_epoch_now=sess.run(start_epoch);
 for epoch_i in range(start_epoch_now,start_epoch_now+n_epochs):
 	i_batch=0;
+	max=0;
 	print ("epoch "+str(epoch_i)+":\t"),
 	for batch_i in range(len(trainingset) // sess.run(batch_size)):
 		batch_xs= trainingset[i_batch:i_batch+sess.run(batch_size)];
 		i_batch=i_batch+sess.run(batch_size);
 		o,c=sess.run(fetches=[optimizer,ae['cost']],
 			feed_dict={ae['x']:batch_xs});
-	print "%2.6f\t%2.15f\t%2.2f"%(
-		c,c/len(coords),c/len(coords)*100);
+		if(c>max):
+			max=c;
+	c,cpp=sess.run(fetches=[ae['cost'],ae['ppx']],
+		feed_dict={
+		ae['x']:trainingset
+		});
+	cppv=sess.run(fetches=ae['ppx'],feed_dict={
+		ae['x']:validationset
+		});
+	print "%2.6f\t%2.10f\t%2.10f"%(
+		c,cpp,cppv);
 	if(c>error*1.01):
 		print "new lr",sess.run(adapt_learning_rate);
-	error=c;
+	if(c<error):
+		error=c;
 	if(epoch_i%100==0 and epoch_i!=start_epoch_now):
 		sess.run(tf.assign(start_epoch,epoch_i));
 		saved_filename=saver.save(sess,save_filename);
 		print "tmp model saved in %s"%(saved_filename)
+		print "test set error per pixel:",
+		print sess.run(ae['ppx'],feed_dict={
+			ae['x']:testset
+			});
 	# summary_writer.add_summary(c,epoch_i);
 sess.run(tf.assign(start_epoch,start_epoch_now+n_epochs));
 saved_filename=saver.save(sess,save_filename);
 print "model saved in %s"%(saved_filename)
+
+
 recon=sess.run(fetches=ae['y'],
-	feed_dict={ae['x']:trainingset[0:5]});
+	feed_dict={ae['x']:testset[0:5]});
 influence,impact=sess.run(
 	fetches=[ae['encW'],ae['decW']]);
 influence=np.transpose(influence);
-vis.plot_maps([trainingset[0:5],recon],coords,img_dims['x'],img_dims['y']);
+vis.plot_maps([testset[0:5],recon],coords,img_dims['x'],img_dims['y']);
 vis.plot_maps([influence,impact],coords,img_dims['x'],img_dims['y']);
 # vis.plot_maps(impact,coords,img_dims['x'],img_dims['y']);

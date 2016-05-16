@@ -108,3 +108,13 @@ def cosine_sim(a,b):
 	b_norm=math.sqrt(b_norm)
 	sim/=a_norm*b_norm;
 	return sim;
+
+
+def l2_diffv1(a,b):
+	l=[];
+	for i in range(len(a)):
+		print ((np.abs(a[i]-b[i])).mean());
+	return np.array(l).mean();
+
+def l2_diffv2(a,b):
+	return np.abs(a-b).mean();
