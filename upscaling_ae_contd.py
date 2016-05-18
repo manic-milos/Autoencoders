@@ -19,8 +19,8 @@ print "loading maps..."
 [instances,
 	coords,
 	img_dims,
-	onlyfiles]=dl.load_nodes_with_schema("highres",
-	"mapschemahighres.csv");
+	onlyfiles]=dl.load_nodes_with_schema("termalmaps",
+	"mapschema.csv");
 print "loading maps completed";
 print "initializing sets...";
 trainingset=instances[1:int(0.8*len(instances))];
@@ -42,6 +42,7 @@ learning_rate=tf.Variable(0.00001,
 adapt_learning_rate=tf.assign(learning_rate,learning_rate/1.1);
 batch_size=tf.Variable(25,name="batch_size");
 start_epoch=tf.Variable(0,name="start_epoch");
+hidden_node_var=tf.Variable(hidden_node_number,name="hidden_node_number");
 optimizer=tf.train.AdamOptimizer(
 	learning_rate).minimize(
 		loss=ae['cost'],
@@ -72,7 +73,8 @@ saver=tf.train.Saver(var_list=[ae['encW'],
 			ae['decb'],
 			learning_rate,
 			batch_size,
-			start_epoch]);
+			start_epoch,
+			hidden_node_var]);
 
 print sess.run(ae['cost'],feed_dict={
 	ae['x']:trainingset
@@ -126,6 +128,10 @@ sess.run(tf.assign(start_epoch,start_epoch_now+n_epochs));
 saved_filename=saver.save(sess,save_filename);
 print "model saved in %s"%(saved_filename)
 
+print "test set error per pixel:",
+print sess.run(ae['ppx'],feed_dict={
+	ae['x']:testset
+	});
 
 recon=sess.run(fetches=ae['y'],
 	feed_dict={ae['x']:testset[0:5]});

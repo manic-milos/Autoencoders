@@ -13,7 +13,7 @@ save_filename=raw_input("saving filename:");
 print "save file:",save_filename;
 
 [coords,img_dims]=dl.load_schema("mapschemahighres.csv");
-representation=16;
+representation=8;
 hidden_node_number=representation;
 input_dim=len(coords);
 

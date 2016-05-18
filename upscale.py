@@ -33,7 +33,7 @@ vis.plot_maps(sess.run(tf.transpose(lae['encW'])),
 	lcoords,limg_dims['x'],limg_dims['y']);
 
 print "upscaling"
-hae=aedef.autoencoder2x(hinput_dim,
+hae=aedef.autoencoder(hinput_dim,
 	hidden_node_number,
 	sess.run(lae['encW']),
 	sess.run(lae['encb']),
