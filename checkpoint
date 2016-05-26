@@ -1,2 +1,2 @@
-model_checkpoint_path: "tmp.ckpnt"
-all_model_checkpoint_paths: "tmp.ckpnt"
+model_checkpoint_path: "upscaled.ckpnt"
+all_model_checkpoint_paths: "upscaled.ckpnt"

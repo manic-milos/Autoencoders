@@ -1,4 +1,5 @@
-import numpy as np
+import numpy as np;
+import tensorflow as tf;
 
 def mapnodestoimg(ionodes,x,y,coords):
 	imgdata=np.zeros([x,y],dtype=np.float32);
@@ -7,12 +8,6 @@ def mapnodestoimg(ionodes,x,y,coords):
 	imgdata=np.transpose(imgdata);
 	return imgdata
 
-def mapnodestoimgtf(ionodes,x,y,coords):
-	imgdata=tf.Variable(tf.zeros([x,y],dtype=np.float32));
-	for i in range(len(coords)):
-		imgdata[coords[i][0],coords[i][1]]=ionodes[i];
-	imgdata=np.transpose(imgdata);
-	return imgdata
 
 # %% maps=list(termalmaps)
 def plot_maps(maps,coords,width,height):
@@ -41,3 +36,7 @@ def plot_maps(maps,coords,width,height):
 	fig.show();
 	plt.draw();
 	plt.waitforbuttonpress();
+
+def make_img_summary(nodes,x,y,coords,img_variable,sess):
+	imgdata=mapnodestoimg(nodes,x,y,coords);
+	sess.run(tf.assign(img_variable,imgdata));
